@@ -18,6 +18,13 @@ const tokenSecret = 'internal-test-secret-with-32-characters';
 type Body = Record<string, unknown> | FormData | string;
 type Expected = {status?:number;token?:string;body?:Body;headers?:Record<string,string>};
 
+test('公众号服务可先配置，数据库和小程序登录分别检查所需凭据', () => {
+  const config = readConfig({LIFELOG_MODE:'production',DATABASE_URL:'postgresql://localhost/lifelog'});
+  assert.equal(config.demo, false);
+  assert.equal(config.WECHAT_MP_APP_ID, undefined);
+  assert.throws(() => readConfig({LIFELOG_MODE:'production'}), /DATABASE_URL/);
+});
+
 async function fixture(opts: {ai?:AIProvider;wechat?:boolean;path?:string} = {}) {
   const cfg = readConfig({LIFELOG_MODE:'demo',DEMO_DB_PATH:opts.path ?? ':memory:',INTERNAL_TICK_SECRET:tokenSecret});
   if (opts.wechat) cfg.wechat = {token:'test-token',mode:'plain',appId:'wx-test',aesKey:undefined};

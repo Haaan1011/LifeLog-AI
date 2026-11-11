@@ -40,8 +40,8 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
   const cfg = result.data;
   const demo = cfg.LIFELOG_MODE === 'demo';
   const cos = [cfg.COS_BUCKET,cfg.COS_REGION,cfg.TENCENTCLOUD_SECRET_ID,cfg.TENCENTCLOUD_SECRET_KEY];
-  if (!demo && (!cfg.DATABASE_URL || !cfg.WECHAT_MP_APP_ID || !cfg.WECHAT_MP_APP_SECRET)) {
-    throw new Error('生产模式需要 DATABASE_URL、WECHAT_MP_APP_ID 和 WECHAT_MP_APP_SECRET');
+  if (!demo && !cfg.DATABASE_URL) {
+    throw new Error('生产模式需要 DATABASE_URL');
   }
   if (cfg.WECHAT_OA_TOKEN && cfg.WECHAT_OA_MODE === 'safe' &&
       (!cfg.WECHAT_OA_APP_ID || !/^[a-zA-Z0-9+/]{43}$/.test(cfg.WECHAT_OA_ENCODING_AES_KEY ?? ''))) {
