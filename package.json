@@ -1,0 +1,36 @@
+{
+  "name": "lifelog-ai",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/server",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n API,H5 \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "npm run dev -w @lifelog/server",
+    "dev:web": "npm run dev:h5 -w apps/web",
+    "dev:mp": "npm run dev:mp-weixin -w apps/web",
+    "start": "npm run start -w @lifelog/server",
+    "db:migrate": "npm run migrate -w @lifelog/server",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test -w @lifelog/server",
+    "test:e2e": "playwright test",
+    "build": "npm run build:server && npm run build:h5 && npm run build:mp",
+    "build:server": "npm run build -w @lifelog/server",
+    "build:h5": "npm run build:h5 -w apps/web",
+    "build:mp": "npm run build:mp-weixin -w apps/web"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "concurrently": "^9.2.1"
+  },
+  "overrides": {
+    "tencentcloud-sdk-nodejs-common": {
+      "uuid": "^11.1.1"
+    }
+  }
+}

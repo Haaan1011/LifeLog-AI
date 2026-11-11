@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "lifelog-tick",
+      "handler": "index.main",
+      "runtime": "Nodejs20.19",
+      "timeout": 120,
+      "memorySize": 256,
+      "envVariables": {
+        "LIFELOG_API_URL": "{{env.LIFELOG_API_URL}}",
+        "INTERNAL_TICK_SECRET": "{{env.INTERNAL_TICK_SECRET}}"
+      },
+      "triggers": [
+        {
+          "name": "every-minute",
+          "type": "timer",
+          "config": "0 * * * * * *"
+        }
+      ]
+    }
+  ]
+}

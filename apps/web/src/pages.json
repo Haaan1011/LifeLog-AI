@@ -1,0 +1,27 @@
+{
+  "pages": [
+    { "path": "pages/home/index", "style": { "navigationBarTitleText": "生活概览" } },
+    { "path": "pages/stats/index", "style": { "navigationBarTitleText": "统计趋势" } },
+    { "path": "pages/records/index", "style": { "navigationBarTitleText": "生活记录" } },
+    { "path": "pages/profile/index", "style": { "navigationBarTitleText": "我的" } },
+    { "path": "pages/editor/index", "style": { "navigationBarTitleText": "记录详情" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#f7faf9",
+    "backgroundColor": "#f7faf9",
+    "navigationStyle": "custom"
+  },
+  "tabBar": {
+    "color": "#627377",
+    "selectedColor": "#126451",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页", "iconPath": "static/home.png", "selectedIconPath": "static/home-active.png" },
+      { "pagePath": "pages/stats/index", "text": "统计", "iconPath": "static/stats.png", "selectedIconPath": "static/stats-active.png" },
+      { "pagePath": "pages/records/index", "text": "记录", "iconPath": "static/records.png", "selectedIconPath": "static/records-active.png" },
+      { "pagePath": "pages/profile/index", "text": "我的", "iconPath": "static/profile.png", "selectedIconPath": "static/profile-active.png" }
+    ]
+  }
+}
