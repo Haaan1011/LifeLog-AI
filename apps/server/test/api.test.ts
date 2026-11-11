@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createService } from '../src/app.js';
 import { readConfig } from '../src/config.js';
+import { createWechatVerificationService } from '../src/wechat-verification.js';
 import { newSession } from '../src/identity.js';
 import { localDate, shiftDate } from '../src/records.js';
 import type { AIProvider } from '../src/intake/provider.js';
@@ -23,6 +24,30 @@ test('公众号服务可先配置，数据库和小程序登录分别检查所�
   assert.equal(config.demo, false);
   assert.equal(config.WECHAT_MP_APP_ID, undefined);
   assert.throws(() => readConfig({LIFELOG_MODE:'production'}), /DATABASE_URL/);
+});
+
+test('公众号验证服务无需数据库，验证正确签名并拒绝未启用的消息处理', async () => {
+  const token = 'localWechatVerification123';
+  const config = readConfig({ LIFELOG_MODE: 'wechat-verification', WECHAT_OA_MODE: 'safe',
+    WECHAT_OA_APP_ID: 'wx0123456789abcdef', WECHAT_OA_TOKEN: token, WECHAT_OA_ENCODING_AES_KEY: 'A'.repeat(43) });
+  const service = createWechatVerificationService(config.wechat!);
+  const server = service.app.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  try {
+    const address = server.address();
+    assert.ok(address && typeof address !== 'string');
+    const url = `http://127.0.0.1:${address.port}/webhooks/wechat`;
+    const timestamp = '1760000000';
+    const nonce = 'wechat-verify';
+    const signature = createHash('sha1').update([token, timestamp, nonce].sort().join('')).digest('hex');
+    const params = new URLSearchParams({ timestamp, nonce, signature, echostr: 'verification-result' });
+    assert.equal(await (await fetch(`${url}?${params}`)).text(), 'verification-result');
+    params.set('signature', '0'.repeat(40));
+    assert.equal((await fetch(`${url}?${params}`)).status, 403);
+    assert.equal((await fetch(url, { method: 'POST' })).status, 503);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
 });
 
 async function fixture(opts: {ai?:AIProvider;wechat?:boolean;path?:string} = {}) {

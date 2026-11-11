@@ -9,7 +9,7 @@ for (const path of [resolve('.env'), resolve('../../.env')]) {
 
 const bool = z.preprocess(value => value === 'true' || value === '1', z.boolean());
 const envSchema = z.object({
-  LIFELOG_MODE: z.enum(['demo','production']).default('demo'),
+  LIFELOG_MODE: z.enum(['demo','production','wechat-verification']).default('demo'),
   HOST: z.string().min(1).optional(),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DEMO_DB_PATH: z.string().optional(),
@@ -39,9 +39,14 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
   if (!result.success) throw new Error('配置字段无效：' + result.error.issues.map(issue => issue.path.join('.')).join(', '));
   const cfg = result.data;
   const demo = cfg.LIFELOG_MODE === 'demo';
+  const verification = cfg.LIFELOG_MODE === 'wechat-verification';
   const cos = [cfg.COS_BUCKET,cfg.COS_REGION,cfg.TENCENTCLOUD_SECRET_ID,cfg.TENCENTCLOUD_SECRET_KEY];
-  if (!demo && !cfg.DATABASE_URL) {
+  if (cfg.LIFELOG_MODE === 'production' && !cfg.DATABASE_URL) {
     throw new Error('生产模式需要 DATABASE_URL');
+  }
+  if (verification && (cfg.WECHAT_OA_MODE !== 'safe' || !/^[a-zA-Z0-9]{3,32}$/.test(cfg.WECHAT_OA_TOKEN ?? '') ||
+      !cfg.WECHAT_OA_APP_ID || !/^[a-zA-Z0-9+/]{43}$/.test(cfg.WECHAT_OA_ENCODING_AES_KEY ?? ''))) {
+    throw new Error('公众号验证模式需要安全模式、AppID、Token 和 EncodingAESKey');
   }
   if (cfg.WECHAT_OA_TOKEN && cfg.WECHAT_OA_MODE === 'safe' &&
       (!cfg.WECHAT_OA_APP_ID || !/^[a-zA-Z0-9+/]{43}$/.test(cfg.WECHAT_OA_ENCODING_AES_KEY ?? ''))) {
@@ -54,7 +59,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
     ...cfg,
     demo,
     host: cfg.HOST || (demo ? '127.0.0.1' : '0.0.0.0'),
-    databaseUrl: demo ? undefined : cfg.DATABASE_URL,
+    databaseUrl: cfg.LIFELOG_MODE === 'production' ? cfg.DATABASE_URL : undefined,
     databaseCa: cfg.DATABASE_SSL_CA?.replace(/\\n/g,'\n'),
     sqlitePath: cfg.DEMO_DB_PATH || resolve(import.meta.dirname,'../../../.data/lifelog.sqlite'),
     origins: cfg.CORS_ORIGINS.split(',').map(value => value.trim()).filter(Boolean),

@@ -58,6 +58,8 @@ $stage
 
 ## 4. 配置公众号回调
 
+数据库尚未配置时，可用 `LIFELOG_MODE=wechat-verification` 先验证公众号 URL。云托管仍监听 `8080`，需要 `WECHAT_OA_APP_ID`、`WECHAT_OA_TOKEN`、`WECHAT_OA_ENCODING_AES_KEY` 和 `WECHAT_OA_MODE=safe`。此模式只响应微信的 GET 验签，收到 POST 会返回 503。正式接收消息前，将模式改回 `production`，配置数据库并重新部署。
+
 1. 在「微信开发者平台 → 我的业务 → 公众号 → 消息与事件推送」配置 `https://<API 域名>/webhooks/wechat`，填入与后台一致的 Token 和 EncodingAESKey，消息格式选 XML，加密选安全模式。服务端亦支持双方都明确配置为明文模式的调试。平台保存配置时会请求 GET 验证签名并要求原样返回 `echostr`。[消息与事件接入](https://developers.weixin.qq.com/doc/subscription/guide/dev/push/) · [消息加解密](https://developers.weixin.qq.com/doc/subscription/guide/dev/push/encryption.html)
 2. 开启后，先用自己的微信号发送一条普通文本，核对公众号的被动回执、小程序绑定和后台处理状态。回调接收并落库后回复，AI 处理在后台。微信普通消息的回调等待窗口为五秒，超时会重投，先验证冷启动和重复投递行为再开放使用。[接收普通消息](https://developers.weixin.qq.com/doc/subscription/guide/product/message/Receiving_standard_messages.html) · [被动回复](https://developers.weixin.qq.com/doc/subscription/guide/product/message/Passive_user_reply_message.html)
 3. 需要图片、语音时，在公众号后台确认凭证和素材权限，配置云托管固定公网出口 IP 到接口白名单。发送样本图片，确认 COS 对象为私有、小程序能读取且第二个用户不可访问，再验证语音转写。接口不可用时任务保留具体失败状态。[稳定凭证](https://developers.weixin.qq.com/doc/subscription/api/base/api_getstableaccesstoken.html) · [临时素材](https://developers.weixin.qq.com/doc/subscription/api/material/temporary/api_getmedia.html) · [固定公网出口 IP](https://docs.cloudbase.net/run/deploy/networking/staticip)
